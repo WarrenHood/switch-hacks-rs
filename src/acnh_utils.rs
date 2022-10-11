@@ -20,8 +20,8 @@ impl ACNH {
         }
     }
 
-    pub fn set_inventory(&mut self, slot: u32, item: InventoryItem) -> Result<(), Box<dyn Error>> {
-        match item {
+    pub fn set_inventory(&mut self, slot: u32, item: &InventoryItem) -> Result<(), Box<dyn Error>> {
+        match *item {
             InventoryItem::Item(item_id, count) => self.set_inventory_item(slot, item_id, count),
             InventoryItem::Recipe(recipe_id) => self.set_inventory_recipe(slot, recipe_id),
         }
@@ -53,9 +53,9 @@ impl ACNH {
         Ok(())
     }
 
-    pub fn fill_inventory(&mut self, item: InventoryItem) -> Result<(), Box<dyn Error>> {
+    pub fn fill_inventory(&mut self, item: &InventoryItem) -> Result<(), Box<dyn Error>> {
         for slot in 0..40 {
-            self.set_inventory(slot, item)?;
+            self.set_inventory(slot, &item)?;
         }
         Ok(())
     }
