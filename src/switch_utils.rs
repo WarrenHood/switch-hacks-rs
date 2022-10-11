@@ -38,12 +38,10 @@ impl Switch {
 
     pub fn write_dword(&mut self, address: u32, value: u32) -> Result<(), Box<dyn Error>>{
         let converted_value = u32::from_le_bytes((value as u32).to_be_bytes()); // For some reason this seems to need big endian representation
-        println!("poke 0x{:08x} 0x{:08x}", address, converted_value);
         self.send_command(format!("poke 0x{:08x} 0x{:08x}", address, converted_value))
     }
 
     pub fn read_bytes(&mut self, address: u32, buf: &mut [u8], length: u32) -> Result<(), Box<dyn Error>> {
-        println!("peek 0x{:08x} 0x{:08x}", address, length);
         self.send_command(format!("peek 0x{:08x} 0x{:08x}", address, length))?;
         receive_bytes(&mut self.switch_handle, &self.read_endpoint, buf, length)?;
         Ok(())
@@ -126,7 +124,7 @@ fn receive_bytes(
     configure_endpoint(switch_handle, &read_endpoint)?;
 
     let mut size_recv: [u8; 4] = [0; 4];
-    switch_handle.read_bulk(read_endpoint.address, &mut size_recv, Duration::from_secs(30))?;
+    switch_handle.read_bulk(read_endpoint.address, &mut size_recv, Duration::from_secs(5))?;
 
     if u32::from_le_bytes(size_recv) != length {
         println!("Warning: Receiving {} bytes from switch... Expected: {}... aborting", u32::from_le_bytes(size_recv), length);
