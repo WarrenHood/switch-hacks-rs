@@ -8,5 +8,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     acnh.fill_inventory(0x8a4, 30)?;
 
     println!("Filled inventory... New inventory: {:#?}", acnh.get_inventory()?);
+    acnh.set_inventory_recipe(0, 0x0297)?;
     Ok(())
 }

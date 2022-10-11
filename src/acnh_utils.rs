@@ -20,21 +20,48 @@ impl ACNH {
         }
     }
 
+    pub fn set_inventory(&mut self, slot: u32, item: InventoryItem) -> Result<(), Box<dyn Error>> {
+        match item {
+            InventoryItem::Item(item_id, count) => self.set_inventory_item(slot, item_id, count),
+            InventoryItem::Recipe(recipe_id) => self.set_inventory_recipe(slot, recipe_id),
+        }
+    }
+
     pub fn set_inventory_item(&mut self, slot: u32, item_id: u32, count: u32) -> Result<(), Box<dyn Error>> {
         self.switch.write_dword(INVENTORY_OFFSET + slot * 8, item_id)?;
         self.switch.write_dword(INVENTORY_OFFSET + slot * 8 + 4, count - 1)?;
         Ok(())
     }
 
-    pub fn fill_inventory(&mut self, item_id: u32, count: u32) -> Result<(), Box<dyn Error>> {
+    pub fn set_inventory_recipe(&mut self, slot: u32, recipe_id: u32) -> Result<(), Box<dyn Error>> {
+        self.switch.write_dword(INVENTORY_OFFSET + slot * 8, 0x16A2)?;
+        self.switch.write_dword(INVENTORY_OFFSET + slot * 8 + 4, recipe_id)?;
+        Ok(())
+    }
+
+    pub fn fill_inventory_items(&mut self, item_id: u32, count: u32) -> Result<(), Box<dyn Error>> {
         for slot in 0..40 {
             self.set_inventory_item(slot, item_id, count)?;
         }
         Ok(())
     }
 
+    pub fn fill_inventory_recipes(&mut self, recipe_id: u32) -> Result<(), Box<dyn Error>> {
+        for slot in 0..40 {
+            self.set_inventory_recipe(slot, recipe_id)?;
+        }
+        Ok(())
+    }
+
+    pub fn fill_inventory(&mut self, item: InventoryItem) -> Result<(), Box<dyn Error>> {
+        for slot in 0..40 {
+            self.set_inventory(slot, item)?;
+        }
+        Ok(())
+    }
+
     pub fn clear_inventory(&mut self) -> Result<(), Box<dyn Error>> {
-        self.fill_inventory(0xfffe, 0)
+        self.fill_inventory_items(0xfffe, 0)
     }
 
     pub fn get_inventory(&mut self) -> Result<Vec<InventoryItem>, Box<dyn Error>> {
