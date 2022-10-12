@@ -26,15 +26,15 @@ pub enum Item {
 impl Item {
     fn get_id(&self) -> u32 {
         match self {
-            Item::Item { item_id, i_name, eng_name, color } => *item_id,
-            Item::Recipe { recipe_id, i_name, eng_name } => *recipe_id,
+            Item::Item { item_id, i_name: _, eng_name: _, color: _ } => *item_id,
+            Item::Recipe { recipe_id, i_name: _, eng_name: _ } => *recipe_id,
         }
     }
 
     fn get_type(&self) -> ItemType {
         match self {
-            Item::Item { item_id, i_name, eng_name, color } => ItemType::Item,
-            Item::Recipe { recipe_id, i_name, eng_name } => ItemType::Recipe,
+            Item::Item { item_id: _, i_name: _, eng_name: _, color: _ } => ItemType::Item,
+            Item::Recipe { recipe_id: _, i_name: _, eng_name: _ } => ItemType::Recipe,
         }
     }
 }

@@ -30,14 +30,14 @@ impl ACNH {
         match item {
             Item::Item {
                 item_id,
-                i_name,
-                eng_name,
-                color,
+                i_name: _,
+                eng_name: _,
+                color: _,
             } => self.set_inventory_item(slot, *item_id, count),
             Item::Recipe {
                 recipe_id,
-                i_name,
-                eng_name,
+                i_name: _,
+                eng_name: _,
             } => self.set_inventory_recipe(slot, *recipe_id),
         }
     }
