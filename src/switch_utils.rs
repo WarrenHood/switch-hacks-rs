@@ -8,6 +8,7 @@ pub struct Switch {
 }
 
 impl Switch {
+    /// Create a new connection to the Switch sysbot over USB
     pub fn new() -> Result<Self, Box<dyn Error>> {
         let ctx = rusb::Context::new()?;
 
@@ -33,15 +34,33 @@ impl Switch {
     }
 
     fn send_command(&mut self, command: String) -> Result<(), Box<dyn Error>> {
-        send_command(&mut self.switch_handle , &self.write_endpoint, command)
+        send_command(&mut self.switch_handle, &self.write_endpoint, command)
     }
 
-    pub fn write_dword(&mut self, address: u32, value: u32) -> Result<(), Box<dyn Error>>{
-        let converted_value = u32::from_le_bytes((value as u32).to_be_bytes()); // For some reason this seems to need big endian representation
-        self.send_command(format!("poke 0x{:08x} 0x{:08x}", address, converted_value))
+    /// Write a signle DWORD to `address`
+    pub fn write_dword(&mut self, address: u32, value: u32) -> Result<(), Box<dyn Error>> {
+        self.write_bytes(address, &(value as u32).to_le_bytes())
     }
 
-    pub fn read_bytes(&mut self, address: u32, buf: &mut [u8], length: u32) -> Result<(), Box<dyn Error>> {
+    /// Write bytes from `buf` (big endian) to `address` on the Switch
+    pub fn write_bytes(&mut self, address: u32, buf: &[u8]) -> Result<(), Box<dyn Error>> {
+        self.send_command(format!(
+            "poke 0x{:08x} 0x{}",
+            address,
+            buf.iter()
+                .map(|b: &u8| format!("{:02x}", &b))
+                .reduce(|a, x| a + &x)
+                .expect("Failed to format bytes")
+        ))
+    }
+
+    /// Read `length` bytes from `address` into a buffer `buf`
+    pub fn read_bytes(
+        &mut self,
+        address: u32,
+        buf: &mut [u8],
+        length: u32,
+    ) -> Result<(), Box<dyn Error>> {
         self.send_command(format!("peek 0x{:08x} 0x{:08x}", address, length))?;
         receive_bytes(&mut self.switch_handle, &self.read_endpoint, buf, length)?;
         Ok(())
@@ -119,24 +138,27 @@ fn receive_bytes(
     switch_handle: &mut DeviceHandle<Context>,
     read_endpoint: &Endpoint,
     buf: &mut [u8],
-    length: u32
+    length: u32,
 ) -> Result<(), Box<dyn Error>> {
     configure_endpoint(switch_handle, &read_endpoint)?;
 
     let mut size_recv: [u8; 4] = [0; 4];
-    switch_handle.read_bulk(read_endpoint.address, &mut size_recv, Duration::from_secs(5))?;
+    switch_handle.read_bulk(
+        read_endpoint.address,
+        &mut size_recv,
+        Duration::from_secs(5),
+    )?;
 
     if u32::from_le_bytes(size_recv) != length {
-        println!("Warning: Receiving {} bytes from switch... Expected: {}... aborting", u32::from_le_bytes(size_recv), length);
+        println!(
+            "Warning: Receiving {} bytes from switch... Expected: {}... aborting",
+            u32::from_le_bytes(size_recv),
+            length
+        );
     }
     // println!("Receiving {} bytes from switch... Expected: {}", u32::from_le_bytes(size_recv), length);
 
-    switch_handle.read_bulk(
-        read_endpoint.address,
-        buf,
-        Duration::from_secs(30),
-    )?;
-
+    switch_handle.read_bulk(read_endpoint.address, buf, Duration::from_secs(30))?;
 
     Ok(())
 }
