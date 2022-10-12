@@ -42,7 +42,7 @@ impl Switch {
         self.write_bytes(address, &(value as u32).to_le_bytes())
     }
 
-    /// Write bytes from `buf` (big endian) to `address` on the Switch
+    /// Write bytes from `buf` to `address` on the Switch
     pub fn write_bytes(&mut self, address: u32, buf: &[u8]) -> Result<(), Box<dyn Error>> {
         self.send_command(format!(
             "poke 0x{:08x} 0x{}",
