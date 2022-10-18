@@ -2,7 +2,7 @@ use std::error::Error;
 use std::io::Read;
 use std::path::Path;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum ItemType {
     Item,
     Recipe,
@@ -23,18 +23,36 @@ pub enum Item {
     },
 }
 
+impl ToString for Item {
+    fn to_string(&self) -> String {
+        match self {
+            Item::Item { item_id, i_name, eng_name, color } => 
+            format!("[Item: {:<04x}] {} ({}) - {}", item_id, eng_name, i_name, color),
+            Item::Recipe { recipe_id, i_name, eng_name } => 
+            format!("[Recipe: {:<04x}] {} ({})", recipe_id, eng_name, i_name),
+        }
+    }
+}
+
 impl Item {
-    fn get_id(&self) -> u32 {
+    pub fn get_id(&self) -> u32 {
         match self {
             Item::Item { item_id, i_name: _, eng_name: _, color: _ } => *item_id,
             Item::Recipe { recipe_id, i_name: _, eng_name: _ } => *recipe_id,
         }
     }
 
-    fn get_type(&self) -> ItemType {
+    pub fn get_type(&self) -> ItemType {
         match self {
             Item::Item { item_id: _, i_name: _, eng_name: _, color: _ } => ItemType::Item,
             Item::Recipe { recipe_id: _, i_name: _, eng_name: _ } => ItemType::Recipe,
+        }
+    }
+
+    pub fn get_name(&self) -> String {
+        match self {
+            Item::Item { item_id, i_name, eng_name, color } => eng_name.into(),
+            Item::Recipe { recipe_id, i_name, eng_name } => eng_name.into(),
         }
     }
 }
@@ -61,12 +79,16 @@ impl AcnhItems {
     }
 
     pub fn find_item(&self, query: &str) -> Option<Item> {
-        self.find_items(query).iter().map(|i| i.clone()).nth(0)
+        self.find_items(query).iter().filter(|i| i.get_type() == ItemType::Item).map(|i| i.clone()).nth(0)
+    }
+
+    pub fn find_recipe(&self, query: &str) -> Option<Item> {
+        self.find_items(query).iter().filter(|i| i.get_type() == ItemType::Recipe).map(|i| i.clone()).nth(0)
     }
 
     pub fn find_items(&self, query: &str) -> Vec<Item> {
         self.items.iter().filter(|item| {
-            let item_description = format!("{:?}", item).to_lowercase();
+            let item_description = item.to_string();
             for kw in query.split(" ") {
                 if !item_description.contains(&kw.to_lowercase()) {
                     return false;

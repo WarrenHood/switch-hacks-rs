@@ -10,8 +10,21 @@ pub struct ACNH {
 
 #[derive(Debug)]
 pub struct InventoryItem {
-    item: Item,
-    count: u32,
+    pub item: Item,
+    pub count: u32,
+}
+
+impl ToString for InventoryItem {
+    fn to_string(&self) -> String {
+        match &self.item {
+            Item::Item { item_id, i_name, eng_name, color } => {
+                return format!("{} x{}", self.item.to_string(), self.count + 1);
+            },
+            Item::Recipe { recipe_id, i_name, eng_name } => {
+                return format!("{}(Recipe)", self.item.to_string());
+            },
+        }
+    }
 }
 
 impl ACNH {
@@ -89,7 +102,7 @@ impl ACNH {
     }
 
     pub fn clear_inventory(&mut self) -> Result<(), Box<dyn Error>> {
-        self.fill_inventory_items(0xfffe, 0)
+        self.fill_inventory_items(0xfffe, 1)
     }
 
     pub fn get_inventory(&mut self, acnh_items: &AcnhItems) -> Result<Vec<InventoryItem>, Box<dyn Error>> {

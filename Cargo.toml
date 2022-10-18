@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 rusb = "0.9.1"
+eframe = "0.19.0"
