@@ -88,7 +88,7 @@ impl AcnhItems {
 
     pub fn find_items(&self, query: &str) -> Vec<Item> {
         self.items.iter().filter(|item| {
-            let item_description = item.to_string();
+            let item_description = item.to_string().to_lowercase();
             for kw in query.split(" ") {
                 if !item_description.contains(&kw.to_lowercase()) {
                     return false;
