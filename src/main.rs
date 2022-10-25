@@ -4,7 +4,7 @@ mod switch_utils;
 mod acnh_utils;
 mod acnh_items;
 
-use eframe::egui;
+use eframe::{egui::{self, Button}, emath::Align, epaint::Color32};
 
 struct ACNHHax {
     acnh_items: acnh_items::AcnhItems,
@@ -142,13 +142,34 @@ impl eframe::App for ACNHHax {
                 }
             });
 
+            ui.separator();
+            ui.spacing();
+
             ui.label("Inventory (click to add)");
-            egui::ScrollArea::horizontal().max_width(1024.0).show(ui, |ui| {
-                for row in 0..4 {
-                    ui.horizontal(|ui| {
+            ui.spacing();
+
+            ui.horizontal(|ui| {
+                ui.add_space(250.0);
+
+
+                egui::Grid::new("inventory_grid").min_col_width(10.0).show(ui, |ui| {
+                    for row in 0..4 {
                         for col in 0..10 {
                             let inv_item = &self.inventory[row*10 + col];
-                            if ui.button(inv_item.to_string()).clicked() && !self.bulk_items {
+                            let fill_color: Color32 = match &inv_item.item {
+                                acnh_items::Item::Item { item_id, i_name, eng_name, color } => {
+                                    if *item_id == 0xfffe {
+                                        Color32::BLACK
+                                    }
+                                    else {
+                                        Color32::DARK_GREEN
+                                    }
+                                },
+                                acnh_items::Item::Recipe { recipe_id, i_name, eng_name } => Color32::from_rgb(100, 100, 0),
+                            };
+
+                            let inv_cell = Button::new(format!("{:02}", row*10 + col)).fill(fill_color);
+                            if ui.add(inv_cell).on_hover_text(inv_item.to_string()).clicked() && !self.bulk_items {
                                 
                                 let item = match self.is_recipe {
                                     true => self.acnh_items.find_recipe(&self.current_query),
@@ -161,13 +182,20 @@ impl eframe::App for ACNHHax {
                                         self.acnh.set_inventory((row*10 + col) as u32, &item, self.current_amount).unwrap();
                                     },
                                     None => {},
-    
+                                    
                                 };
                             }
                         }
-                    });
-                }
+                        ui.end_row();
+                    }
+                });
             });
+
+            
+            
+
+
+
 
         });
     }
